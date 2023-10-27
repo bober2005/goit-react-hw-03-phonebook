@@ -16,9 +16,53 @@ export class App extends Component {
   };
 
   componentDidMount() {
-    const contactsToLocalStorage = localStorage.getItem(
-      'contactsToLocalStorage'
+    this.loadContactsFromLocalStorage();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.contacts !== prevState.contacts) {
+      this.saveContactsToLocalStorage();
+    }
+  }
+
+  onformSubmit = ({ id, name, number }) => {
+    const contact = { id, name, number };
+    this.setState(({ contacts }) => {
+      return { contacts: [contact, ...contacts] };
+    });
+  };
+
+  onFilter = (e) => {
+    this.setState({
+      filter: e.target.value,
+    });
+  };
+
+  onDeleteHandler = (id) => {
+    const filteredContacts = this.state.contacts.filter(
+      (contact) => contact.id !== id
     );
+    this.setState((prevState) => {
+      return { ...prevState, contacts: [...filteredContacts] };
+    });
+  };
+
+  onFilterContacts = () => {
+    let filterContact = [];
+    if (this.state.filter) {
+      filterContact = this.state.contacts.filter(
+        (contact) =>
+          contact.name.includes(this.state.filter) ||
+          contact.name.toLowerCase().includes(this.state.filter)
+      );
+    } else {
+      return this.state.contacts;
+    }
+    return filterContact;
+  };
+
+  loadContactsFromLocalStorage() {
+    const contactsToLocalStorage = localStorage.getItem('contactsToLocalStorage');
 
     if (contactsToLocalStorage) {
       try {
@@ -30,50 +74,12 @@ export class App extends Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem(
-        'contactsToLocalStorage',
-        JSON.stringify(this.state.contacts)
-      );
-    }
-  }
-
-  onformSubmit = ({ id, name, number }) => {
-    const contact = { id, name, number };
-    this.setState(({ contacts }) => {
-      return { contacts: [contact, ...contacts] };
-    });
-  };
-
-  onFilter = e => {
-    this.setState({
-      filter: e.target.value,
-    });
-  };
-
-  onDeleteHandler = id => {
-    const filteredContacts = this.state.contacts.filter(
-      contact => contact.id !== id
+  saveContactsToLocalStorage() {
+    localStorage.setItem(
+      'contactsToLocalStorage',
+      JSON.stringify(this.state.contacts)
     );
-    this.setState(prevState => {
-      return { ...prevState, contacts: [...filteredContacts] };
-    });
-  };
-
-  onFilterContacts = () => {
-    let filterContact = [];
-    if (this.state.filter) {
-      filterContact = this.state.contacts.filter(
-        contact =>
-          contact.name.includes(this.state.filter) ||
-          contact.name.toLowerCase().includes(this.state.filter)
-      );
-    } else {
-      return this.state.contacts;
-    }
-    return filterContact;
-  };
+  }
 
   render() {
     const { contacts, filter } = this.state;
